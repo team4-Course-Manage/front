@@ -86,7 +86,7 @@ if (button.selected) {
 } else {
   if (!isAnyButtonSelected.value) {
     try {
-      const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/report/choose', {
+      const response = await axios.post('http://localhost:8080/report/choose', {
         studentid: String(stuid.value || '123'),
         week: Number(groupNumber.value),
         order: Number(index + 1)
@@ -115,7 +115,7 @@ if (button.selected) {
 //获取初始数据的方法
 async function fetchInitialData() {
 try {
-  const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/report/weekly');
+  const response = await axios.get('http://localhost:8080/report/weekly');
   console.log('获取到的初始数据:', response.data);
   
   if (response.data) {  // 检查是否有数据返回

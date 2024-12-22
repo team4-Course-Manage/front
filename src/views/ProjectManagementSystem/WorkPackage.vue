@@ -120,7 +120,7 @@ const memberList = ref([]);
 // 添加获取组员列表的方法
 const fetchMemberList = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/workpackage/members');
+    const response = await axios.get('http://localhost:8080/workpackage/members');
     
     if (response.data.success) {
       memberList.value = response.data.data.members;
@@ -152,7 +152,7 @@ const form = ref({
 // 修改提交表单方法，添加后端交互
 const submitForm = async () => {
   try {
-    const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/workpackage/create', {
+    const response = await axios.post('http://localhost:8080/workpackage/create', {
       subject: form.value.subject,
       description: form.value.description,
       responsiblePerson: form.value.responsiblePerson,
@@ -182,7 +182,7 @@ const submitForm = async () => {
 // 添加获取任务列表的方法
 const fetchTaskList = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/workpackage/list');
+    const response = await axios.get('http://localhost:8080/workpackage/list');
     
     if (response.data.success) {
       tableData.value = response.data.data.tasks;

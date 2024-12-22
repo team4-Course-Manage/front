@@ -89,7 +89,7 @@ const studentId = ref('123');
 // 获取所有组信息
 const fetchGroupInfo = async () => {
 try {
-  const response = await axios.get('http://127.0.0.1:4523/m2/5394050-5067403-default/246845626');
+  const response = await axios.get('http://localhost:8080/group/get_group');
   console.log("获取到的组信息:", response.data);
   
   // 处理单个组对象的情况
@@ -158,7 +158,7 @@ try {
 
   console.log("发送的请求数据:", requestBody);
 
-  const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/group/add_group', requestBody);
+  const response = await axios.post('http://localhost:8080/group/add_group', requestBody);
   
   if (response.data && response.data.GroupID) {  
     ElMessage({
@@ -216,7 +216,7 @@ try {
 
   console.log("发送的加入组请求数据:", requestBody);
 
-  const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/group/join_group', requestBody);
+  const response = await axios.post('http://localhost:8080/group/join_group', requestBody);
   
   // 修改成功判断条件
   if (response.data) {
