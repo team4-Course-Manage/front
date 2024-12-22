@@ -48,10 +48,11 @@
                 <label for="responsible-person">受理人</label>
                 <select v-model="form.responsiblePerson" id="responsible-person" required>
                   <option value="" disabled>请选择</option>
-                  <option value="组员1">组员1</option>
-                  <option value="组员2">组员2</option>
-                  <option value="组员3">组员3</option>
-                  <option value="组员4">组员4</option>
+                  <option v-for="member in memberList" 
+                          :key="member.id" 
+                          :value="member.name">
+                    {{ member.name }}
+                  </option>
                 </select>
               </div>
 
@@ -59,10 +60,11 @@
                 <label for="leader">负责人</label>
                 <select v-model="form.leader" id="leader" required>
                   <option value="" disabled>请选择</option>
-                  <option value="组员1">组员1</option>
-                  <option value="组员2">组员2</option>
-                  <option value="组员3">组员3</option>
-                  <option value="组员4">组员4</option>
+                  <option v-for="member in memberList" 
+                          :key="member.id" 
+                          :value="member.name">
+                    {{ member.name }}
+                  </option>
                 </select>
               </div>
 
@@ -96,7 +98,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';  // 确保导入 axios
 import top from "../../components/topofstudent.vue"
 import Sidebar3 from "../../components/Sidebar3.vue";
 
@@ -110,6 +113,25 @@ const components = {
 const formVisible = ref(false);
 const formTitle = ref('');
 const tableData = ref([]);
+
+// 添加组员列表数据
+const memberList = ref([]);
+
+// 添加获取组员列表的方法
+const fetchMemberList = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/workpackage/members');
+    
+    if (response.data.success) {
+      memberList.value = response.data.data.members;
+      console.log("获取组员列表成功:", response.data);
+    } else {
+      console.error("获取组员列表失败:", response.data.message);
+    }
+  } catch (error) {
+    console.error("获取组员列表请求失败:", error.response?.data?.message || error.message);
+  }
+};
 
 // 添加创建任务的处理方法
 const handleSelect = () => {
@@ -127,16 +149,57 @@ const form = ref({
   date: ''
 });
 
-// 提交表单方法
-const submitForm = () => {
-  tableData.value.push({
-    subject: form.value.subject,
-    status: '新增',
-    assignee: form.value.responsiblePerson,
-    priority: form.value.priority
-  });
-  resetForm();
+// 修改提交表单方法，添加后端交互
+const submitForm = async () => {
+  try {
+    const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/workpackage/create', {
+      subject: form.value.subject,
+      description: form.value.description,
+      responsiblePerson: form.value.responsiblePerson,
+      leader: form.value.leader,
+      priority: form.value.priority,
+      date: form.value.date
+    });
+
+    if (response.data.success) {
+      // 添加到表格数据
+      tableData.value.push({
+        subject: form.value.subject,
+        status: '新增',
+        assignee: form.value.responsiblePerson,
+        priority: form.value.priority
+      });
+      console.log("创建任务成功:", response.data);
+      resetForm();
+    } else {
+      console.error("创建任务失败:", response.data.message);
+    }
+  } catch (error) {
+    console.error("创建任务请求失败:", error.response?.data?.message || error.message);
+  }
 };
+
+// 添加获取任务列表的方法
+const fetchTaskList = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/workpackage/list');
+    
+    if (response.data.success) {
+      tableData.value = response.data.data.tasks;
+      console.log("获取任务列表成功:", response.data);
+    } else {
+      console.error("获取任务列表失败:", response.data.message);
+    }
+  } catch (error) {
+    console.error("获取任务列表请求失败:", error.response?.data?.message || error.message);
+  }
+};
+
+// 在组件挂载时获取任务列表
+onMounted(() => {
+  fetchTaskList();
+  fetchMemberList();  // 获取组员列表
+});
 
 // 重置表单方法
 const resetForm = () => {
