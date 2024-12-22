@@ -32,6 +32,7 @@
                   class="join-button"
                   :disabled="group.isJoined || group.currentCount >= group.maxCount"
                   @click="joinGroup(group)"
+                  :class="{ 'full': group.currentCount >= group.maxCount }"
                 >
                   {{ group.isJoined ? '已加入' : 
                      group.currentCount >= group.maxCount ? '已满' : '加入' }}
@@ -420,5 +421,15 @@ button:disabled {
 /* 确保右侧有足够空间放置新组 */
 .right {
   padding-right: 250px;  /* 为右侧新组预留空间 */
+}
+
+/* 在 style 部分添加以下样式 */
+.join-button.full {
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+.join-button.full:hover {
+  background-color: #999;
 }
 </style>
