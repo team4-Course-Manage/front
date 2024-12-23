@@ -26,7 +26,7 @@
                 </div>
                 <div class="row">
                   <label>人数:</label>
-                  <span>{{ group.currentCount || 0 }}/{{ group.maxCount || 10 }}</span>
+                  <span>{{ group.currentCount}}/{{ group.maxCount || 10 }}</span>
                 </div>
                 <button
                   class="join-button"
@@ -90,7 +90,7 @@ const studentId = ref('123');
 // 获取所有组信息
 const fetchGroupInfo = async () => {
 try {
-  const response = await axios.get('http://localhost:8080/group/get_group');
+  const response = await axios.get('http://127.0.0.1:4523/m2/5394050-5067403-default/246845626');
   console.log("获取到的组信息:", response.data);
   
   // 处理单个组对象的情况
@@ -99,8 +99,8 @@ try {
     groups.value = [{
       name: group.GroupName,
       number: group.GroupID,
-      currentCount: Number(group.GroupMemberNumber),  
-      maxCount: Number(group.GroupMaxMember),          
+      currentCount: Number(group.GroupMemberNumber) || 0,
+      maxCount: 10,
       isJoined: false,
       isCreated: true
     }];
@@ -110,8 +110,8 @@ try {
       .map(group => ({
         name: group.GroupName,
         number: group.GroupID,
-        currentCount: Number(group.GroupCurrentMember),  
-        maxCount: Number(group.GroupMaxMember),          
+        currentCount: Number(group.GroupMemberNumber) || 0,
+        maxCount: 10,
         isJoined: false,
         isCreated: true
       }))
@@ -159,7 +159,7 @@ try {
 
   console.log("发送的请求数据:", requestBody);
 
-  const response = await axios.post('http://localhost:8080/group/add_group', requestBody);
+  const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/group/add_group', requestBody);
   
   if (response.data && response.data.GroupID) {  
     ElMessage({
@@ -198,7 +198,7 @@ try {
 }
 };
 
-// 修改加入组的方法
+// 加入组的方法
 const joinGroup = async (group) => {
 if (group.currentCount >= group.maxCount) {
   ElMessage({
@@ -209,7 +209,7 @@ if (group.currentCount >= group.maxCount) {
 }
 
 try {
-  // 修改请求体格式
+  // 请求体格式
   const requestBody = {
     GroupMemberNumber: group.currentCount + 1,  // 当前人数加1
     StuGroupID: String(group.number)           // 使用组号作为 StuGroupID
@@ -217,9 +217,9 @@ try {
 
   console.log("发送的加入组请求数据:", requestBody);
 
-  const response = await axios.post('http://localhost:8080/group/join_group', requestBody);
+  const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/group/join_group', requestBody);
   
-  // 修改成功判断条件
+  // 成功判断条件
   if (response.data) {
     ElMessage({
       message: '加入组成功！',

@@ -21,12 +21,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, index) in tableData" :key="index">
+                <tr v-for="(task, index) in tasks" :key="index">
                   <td>{{ index + 1 }}</td>
-                  <td>{{ item.subject }}</td>
-                  <td>{{ item.status }}</td>
-                  <td>{{ item.assignee }}</td>
-                  <td>{{ item.priority }}</td>
+                  <td>{{ task.theme }}</td>
+                  <td>{{ task.status }}</td>
+                  <td>{{ task.receiverId }}</td>
+                  <td>{{ task.priority }}</td>
                 </tr>
               </tbody>
             </table>
@@ -50,7 +50,7 @@
                   <option value="" disabled>请选择</option>
                   <option v-for="member in memberList" 
                           :key="member.id" 
-                          :value="member.name">
+                          :value="member.id">
                     {{ member.name }}
                   </option>
                 </select>
@@ -62,7 +62,7 @@
                   <option value="" disabled>请选择</option>
                   <option v-for="member in memberList" 
                           :key="member.id" 
-                          :value="member.name">
+                          :value="member.id">
                     {{ member.name }}
                   </option>
                 </select>
@@ -100,6 +100,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';  // 确保导入 axios
+import { ElMessage } from 'element-plus';  // 添加这行
 import top from "../../components/topofstudent.vue"
 import Sidebar3 from "../../components/Sidebar3.vue";
 
@@ -112,24 +113,46 @@ const components = {
 // 表单相关的数据
 const formVisible = ref(false);
 const formTitle = ref('');
-const tableData = ref([]);
+const tasks = ref([]); // 用于存储任务列表数据
 
 // 添加组员列表数据
 const memberList = ref([]);
 
-// 添加获取组员列表的方法
+// 修改获取组员列表的方法
 const fetchMemberList = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/group/get_group');
+    // 获取组信息
+    const groupResponse = await axios.get('http://127.0.0.1:4523/m2/5394050-5067403-default/246845626');
     
-    if (response.data.success) {
-      memberList.value = response.data.data.members;
-      console.log("获取组员列表成功:", response.data);
+    if (groupResponse.data && Array.isArray(groupResponse.data)) {
+      // 将组信息转换为成员列表格式
+      memberList.value = groupResponse.data.map(group => ({
+        id: group.GroupID,
+        name: group.GroupName
+      }));
+      
+      console.log("获取组员列表成功:", memberList.value);
+    } else if (groupResponse.data) {
+      // 处理单个组的情况
+      memberList.value = [{
+        id: groupResponse.data.GroupID,
+        name: groupResponse.data.GroupName
+      }];
+      
+      console.log("获取组员列表成功:", memberList.value);
     } else {
-      console.error("获取组员列表失败:", response.data.message);
+      ElMessage({
+        message: '获取组员列表失败：数据为空',
+        type: 'warning'
+      });
+      console.error("获取组员列表失败：数据为空");
     }
   } catch (error) {
-    console.error("获取组员列表请求失败:", error.response?.data?.message || error.message);
+    ElMessage({
+      message: '获取组员列表失败',
+      type: 'error'
+    });
+    console.error("获取组员列表失败:", error);
   }
 };
 
@@ -149,56 +172,123 @@ const form = ref({
   date: ''
 });
 
-// 修改提交表单方法，添加后端交互
+// 提交表单方法，添加后端交互
 const submitForm = async () => {
   try {
-    const response = await axios.post('http://localhost:8080/Task/add_task', {
-      subject: form.value.subject,
-      description: form.value.description,
-      responsiblePerson: form.value.responsiblePerson,
-      leader: form.value.leader,
-      priority: form.value.priority,
-      date: form.value.date
-    });
+    // 生成随机ID作为projectID (整数类型)
+    const randomProjectId = Math.floor(Math.random() * 1000) + 1;
+    
+    const requestBody = {
+      taskName: String(form.value.subject),  // 字符串类型
+      projectID: randomProjectId,  // 整数类型
+      theme: String(form.value.subject),  // 字符串类型
+      Description: String(form.value.description),  // 字符串类型
+      receiverId: parseInt(form.value.responsiblePerson),  // 整数类型
+      principalId: parseInt(form.value.leader),  // 整数类型
+      priority: String(form.value.priority),  // 字符串类型
+      taskDate: String(form.value.date),  // 字符串类型
+      status: String('新建')  // 字符串类型
+    };
 
-    if (response.data.success) {
+    console.log("发送的请求数据:", requestBody);
+
+    const response = await axios.post('http://127.0.0.1:4523/m1/5394050-5067403-default/Task/add_task', requestBody);
+
+    if (response.data) {
+      // 获取受理人姓名
+      const receiverName = await getStuInfoById(form.value.responsiblePerson);
+      
       // 添加到表格数据
-      tableData.value.push({
-        subject: form.value.subject,
-        status: '新增',
-        assignee: form.value.responsiblePerson,
+      tasks.value.push({
+        theme: form.value.subject,
+        status: '新建',
+        receiverId: receiverName,  // 使用获取到的姓名
         priority: form.value.priority
       });
+      
+      ElMessage({
+        message: '创建任务成功',
+        type: 'success'
+      });
+      
       console.log("创建任务成功:", response.data);
       resetForm();
+      // 刷新任务列表
+      fetchTasks();
     } else {
-      console.error("创建任务失败:", response.data.message);
+      throw new Error('创建任务失败：服务器返回数据为空');
     }
   } catch (error) {
-    console.error("创建任务请求失败:", error.response?.data?.message || error.message);
+    ElMessage({
+      message: error.response?.data?.message || error.message || '创建任务失败',
+      type: 'error'
+    });
+    console.error("创建任务失败:", error);
   }
 };
 
-// 添加获取任务列表的方法
-const fetchTaskList = async () => {
+// 添加获取学生信息的方法
+const getStuInfoById = async (id) => {
   try {
-    const response = await axios.get('http://localhost:8080/Task/show_Task');
-    
-    if (response.data.success) {
-      tableData.value = response.data.data.tasks;
-      console.log("获取任务列表成功:", response.data);
-    } else {
-      console.error("获取任务列表失败:", response.data.message);
+    const response = await axios.get(`http://127.0.0.1:4523/m1/5394050-5067403-default/stuInfo/getStuInfoByID?id=${id}`);
+    if (response.data) {
+      return response.data.name;
     }
+    return id; // 如果获取失败则返回原始ID
   } catch (error) {
-    console.error("获取任务列表请求失败:", error.response?.data?.message || error.message);
+    console.error(`获取学生信息失败(ID: ${id}):`, error);
+    return id; // 如果获取失败则返回原始ID
+  }
+};
+
+// 获取任务列表的方法
+const fetchTasks = async () => {
+  try {
+    const requestBody = {
+      projectID: projectId.value,
+    };
+
+    const response = await axios.get('http://127.0.0.1:4523/m1/5394050-5067403-default/Task/show_Task', requestBody);
+    
+    // 检查并处理返回的数据
+    let taskList = [];
+    if (response.data && response.data.data) {
+      taskList = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      taskList = response.data;
+    } else if (response.data) {
+      taskList = [response.data];
+    }
+
+    // 处理每个任务，获取受理人姓名
+    tasks.value = await Promise.all(taskList.map(async task => {
+      // 获取受理人姓名
+      const receiverName = await getStuInfoById(task.receiverId);
+      
+      return {
+        taskName: task.taskName,
+        theme: task.theme,
+        description: task.Description,
+        receiverId: receiverName,  // 使用获取到的姓名
+        priority: task.priority || '普通',
+        status: task.status
+      };
+    }));
+
+    console.log("获取到的任务列表:", tasks.value);
+  } catch (error) {
+    ElMessage({
+      message: '获取任务列表失败',
+      type: 'error'
+    });
+    console.error("获取任务列表失败:", error);
   }
 };
 
 // 在组件挂载时获取任务列表
 onMounted(() => {
-  fetchTaskList();
-  fetchMemberList();  // 获取组员列表
+  fetchTasks(); // 获取任务列表
+  fetchMemberList(); // 获取组员列表
 });
 
 // 重置表单方法
@@ -216,6 +306,8 @@ const resetForm = () => {
 
 // 活动标签页
 const activeTab = ref('workPackages');
+
+const projectId = ref(null); // 在 setup 中定义项目ID
 </script>
 
 <style scoped>
