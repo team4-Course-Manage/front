@@ -44,7 +44,6 @@ import { ref, computed, onMounted } from 'vue';
 
 import axios from 'axios';
 
-// 移除 export default，改用 setup 语法
 const components = {
 top,
 SidebarForStu
@@ -62,7 +61,7 @@ Array.from({ length: 14 }, () =>
 )
 );
 
-// 获取当前组的按钮
+// 获取当前组5个的按钮
 const currentGroupButtons = computed(() => buttons.value[activeButtonIndex.value]);
 
 // 计算是否有按钮被选择

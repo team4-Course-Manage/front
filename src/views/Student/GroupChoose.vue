@@ -139,7 +139,7 @@ newGroup.value = {
 };
 };
 
-// 修改创建组的方法
+// 创建组的方法
 const createGroup = async (group) => {
 try {
   if (!group.name) {
@@ -287,7 +287,7 @@ padding: 5px;
   z-index: 10;
 }
 
-/* 组容器础样式 */
+/* 组容器基础样式 */
 .group-container {
   margin: 20px;
   padding: 10px;
@@ -295,8 +295,9 @@ padding: 5px;
   border-radius: 8px;
   background-color: #f9f9f9;
   width: 180px;
+  height: 200px; 
   box-sizing: border-box;
-  position: absolute;  /* 恢复为 absolute 定位 */
+  position: absolute;
   right: 50px;
   top: 100px;
   transition: all 0.3s ease;
@@ -308,6 +309,7 @@ padding: 5px;
   right: 50px;
   top: 100px;
   z-index: 100;
+  height: 200px; 
 }
 
 /* 已创建的组容器样式 */
@@ -316,6 +318,7 @@ padding: 5px;
   right: auto;
   top: auto;
   background-color: #f0f8ff;
+  height: 200px; 
 }
 
 .group-info {
@@ -323,13 +326,16 @@ padding: 5px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  height: 180px;
+  height: 90%; 
+  justify-content: space-between; 
 }
 
 .row {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 input {
@@ -359,14 +365,14 @@ button {
 .join-button {
   background-color: #008cba;
   color: white;
-  margin: 0 auto; /* 水平方向 margin 自分配，实现水平居中 */
+  margin: 0 auto; 
   width:75px;
   height: 35px;
 }
 
 .join-button:hover {
   background-color: #005f6b;
-  margin: 0 auto; /* 水平方向 margin 自动分配，实现水平居中 */
+  margin: 0 auto; 
   width:75px;
 
 }
@@ -390,7 +396,7 @@ button:disabled {
   gap: 20px;
   padding-left: 20px;
   flex: 1;
-  min-height: 300px;  /* 确保有足够的空间 */
+  min-height: 300px;  
 }
 
 /* 修改输入框样式 */
@@ -402,6 +408,7 @@ button:disabled {
   border-radius: 4px;
   padding: 0 8px;
   background-color: white;
+  display: inline-block;
 }
 
 .row input:disabled {
@@ -420,7 +427,7 @@ button:disabled {
 
 /* 确保右侧有足够空间放置新组 */
 .right {
-  padding-right: 250px;  /* 为右侧新组预留空间 */
+  padding-right: 250px;  
 }
 
 /* 在 style 部分添加以下样式 */
@@ -432,4 +439,10 @@ button:disabled {
 .join-button.full:hover {
   background-color: #999;
 }
+
+.row label {
+  min-width: 50px;
+  display: inline-block;
+}
+
 </style>
